@@ -1,0 +1,31 @@
+- project_root/
+  |- index.php (Landing page for unregistered users)
+  |- register.php (User registration page)
+  |- login.php (User login page)
+  |- dashboard.php (User dashboard page - car list and favorites)
+  |- add_to_favorites.php (Script to add a car to favorites)
+  |- view_favorites.php (Script to view user's favorite cars)
+  |- update_profile.php (User profile update page)
+  |- admin_upgrade_user.php (Admin upgrade user to admin)
+  |- admin_delete_user.php (Admin delete user)
+  |- admin/
+  |  |- index.php (Admin dashboard - User management)
+  |  |- users.php (Admin view all users and block/unblock)
+  |  |- add_car.php (Admin add a new car)
+  |  |- edit_car.php (Admin edit car details)
+  |  |- delete_car.php (Admin delete a car)
+  |- includes/
+  |  |- db_connection.php (Database connection script)
+  |  |- functions.php (Common functions used across the application)
+  |- css/
+  |  |- styles.css (CSS file for styling the pages)
+  |- js/
+  |  |- script.js (JavaScript file for client-side interactions)
+  |- images/
+  |  |- car1.jpg
+  |  |- car2.jpg
+  |  |- ... (other car images)
+  |- admin_images/
+  |  |- admin1.jpg
+  |  |- admin2.jpg
+  |  |- admin3.jpg

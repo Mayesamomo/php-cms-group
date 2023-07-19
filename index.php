@@ -1,70 +1,65 @@
 <?php
 
-include( 'admin/includes/database.php' );
-include( 'admin/includes/config.php' );
-include( 'admin/includes/functions.php' );
+// Include the header
+require_once "includes/header.php";
+// Database connection
+require_once "includes/db_connection.php";
+// Determine the current page number (default to 1 if not set)
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+// Number of cars to display per page
+$carsPerPage = 5;
+// Calculate the starting row for the current page
+$startRow = ($page - 1) * $carsPerPage;
 
+// Fetch cars data from the database with pagination
+$sql = "SELECT * FROM cars LIMIT $startRow, $carsPerPage";
+$result = $pdo->query($sql);
+// Fetch all cars data into an array
+$cars = $result->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<!doctype html>
-<html>
-<head>
-  
-  <meta charset="UTF-8">
-  <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
-  
-  <title>Website Admin</title>
-  
-  <link href="styles.css" type="text/css" rel="stylesheet">
-  
-  <script src="https://cdn.ckeditor.com/ckeditor5/12.4.0/classic/ckeditor.js"></script>
-  
-</head>
-<body>
+<!-- Car Listing Cards with Grid Layout -->
+<div class="container pt-5">
+  <div class="row car-list">
+    <?php foreach ($cars as $car) : ?>
+      <div class="col-md-4 col-sm-6 mb-4">
+        <div class="card car-card">
+          <!-- Car Image -->
+          <?php
+          $image_url = $car['images'] ? $car['images'] : 'https://placehold.co/200x200';
+          ?>
+          <img src="<?= $image_url ?>" class="card-img-top" alt="<?= $car['make'] . ' ' . $car['model'] ?>">
 
-  <h1>Welcome to My Website!</h1>
-  <p>This is the website frontend!</p>
+          <div class="card-body">
+            <h2 class="card-title"><?= $car['make'] . ' ' . $car['model'] ?></h2>
+            <p class="card-text">Year: <?= $car['year'] ?></p>
+            <p class="card-text">Price: $<?= $car['price'] ?></p>
+            <!-- Add more car details here -->
+          </div>
 
-  <?php
-
-  $query = 'SELECT *
-    FROM projects
-    ORDER BY date DESC';
-  $result = mysqli_query( $connect, $query );
-
-  ?>
-
-  <p>There are <?php echo mysqli_num_rows($result); ?> projects in the database!</p>
-
-  <hr>
-
-  <?php while($record = mysqli_fetch_assoc($result)): ?>
-
-    <div>
-
-      <h2><?php echo $record['title']; ?></h2>
-      <?php echo $record['content']; ?>
-
-      <?php if($record['photo']): ?>
-
-        <p>The image can be inserted using a base64 image:</p>
-
-        <img src="<?php echo $record['photo']; ?>">
-
-        <p>Or by streaming the image through the image.php file:</p>
-
-        <img src="admin/image.php?type=project&id=<?php echo $record['id']; ?>&width=100&height=100">
-
-      <?php else: ?>
-
-        <p>This record does not have an image!</p>
-
-      <?php endif; ?>
-
+          <!-- View Details Button -->
+          <div class="card-footer text-center">
+            <a href="car_details.php?id=<?= $car['id'] ?>" class="btn btn-primary">View Details</a>
+          </div>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  </div>
+  <!-- Pagination links -->
+  <div class="row">
+    <div class="col">
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          <?php
+          $totalCars = $pdo->query("SELECT COUNT(*) FROM cars")->fetchColumn();
+          $totalPages = ceil($totalCars / $carsPerPage);
+          for ($i = 1; $i <= $totalPages; $i++):
+          ?>
+            <li class="page-item"><a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a></li>
+          <?php endfor; ?>
+        </ul>
+      </nav>
     </div>
-
-    <hr>
-
-  <?php endwhile; ?>
-
-</body>
-</html>
+  </div>
+</div>
+<!-- Include the footer -->
+<?php require_once "includes/footer.php";?>
