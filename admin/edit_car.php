@@ -36,67 +36,96 @@ if (!$car) {
     exit();
 }
 
-// Handle form submission when the "Update Car" button is clicked
-if (isset($_POST['update_car'])) {
+// Initialize variables to store form data and error messages
+$make = $car['make'];
+$model = $car['model'];
+$year = $car['year'];
+$price = $car['price'];
+$quantity = $car['quantity'];
+$error_message = "";
+
+// Check if the form is submitted
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Get updated car details from the form
-    $make = $_POST['make'];
-    $model = $_POST['model'];
-    $year = intval($_POST['year']);
-    $price = floatval($_POST['price']);
-    $quantity = intval($_POST['quantity']);
-    
-    // Check if a new image is uploaded
-    if ($_FILES['car_image']['size'] > 0) {
-        // Process image upload
-        $image_path = "../public/images/";
-        $image_name = $_FILES['car_image']['name'];
-        $image_tmp = $_FILES['car_image']['tmp_name'];
-        $image_type = $_FILES['car_image']['type'];
-        $image_size = $_FILES['car_image']['size'];
+    $make = trim($_POST["make"]);
+    $model = trim($_POST["model"]);
+    $year = trim($_POST["year"]);
+    $price = trim($_POST["price"]);
+    $quantity = trim($_POST["quantity"]);
+    $images = $_FILES["car_image"];
 
-        // Check if the uploaded file is an image
-        $allowed_types = array('jpg', 'jpeg', 'png', 'gif');
-        $image_extension = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
-        if (!in_array($image_extension, $allowed_types)) {
-            $_SESSION['error_message'] = "Only JPG, JPEG, PNG, and GIF images are allowed.";
-            header("Location: edit_car.php?id={$car_id}");
-            exit();
-        }
-
-        // Generate a unique name for the image
-        $new_image_name = uniqid('car_') . '.' . $image_extension;
-
-        // Move the uploaded image to the images folder
-        if (!move_uploaded_file($image_tmp, $image_path . $new_image_name)) {
-            $_SESSION['error_message'] = "Error occurred while uploading the image.";
-            header("Location: edit_car.php?id={$car_id}");
-            exit();
-        }
-
-        // Delete the old image if it exists
-        if ($car['images']) {
-            unlink($image_path . $car['images']);
-        }
-        
-        // Update the car data in the database with the new image
-        $stmt = $pdo->prepare("UPDATE cars SET make = :make, model = :model, year = :year, price = :price, quantity = :quantity, images = :images WHERE id = :car_id");
-        $result = $stmt->execute(['make' => $make, 'model' => $model, 'year' => $year, 'price' => $price, 'quantity' => $quantity, 'images' => $new_image_name, 'car_id' => $car_id]);
+    // Validate form data
+    if (empty($make) || empty($model) || empty($year) || empty($price) || empty($quantity)) {
+        $error_message = "Please fill in all required fields.";
     } else {
-        // Update the car data in the database without changing the image
-        $stmt = $pdo->prepare("UPDATE cars SET make = :make, model = :model, year = :year, price = :price, quantity = :quantity WHERE id = :car_id");
-        $result = $stmt->execute(['make' => $make, 'model' => $model, 'year' => $year, 'price' => $price, 'quantity' => $quantity, 'car_id' => $car_id]);
-    }
+        // Check if a new image is uploaded
+        if ($images['size'] > 0) {
+            // Validate image upload
+            $upload_dir = "../public/images/"; // Path to the images folder inside the public folder
+            $allowed_extensions = ["jpg", "jpeg", "png", "gif"];
+            $file_name = basename($images["name"]);
+            $file_extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 
-    // Set a session variable with the success/error message
-    if ($result) {
-        $_SESSION['success_message'] = "Car details updated successfully.";
-    } else {
-        $_SESSION['error_message'] = "Error occurred while updating car details.";
-    }
+            if (!in_array($file_extension, $allowed_extensions)) {
+                $error_message = "Invalid file format. Only JPG, JPEG, PNG, and GIF files are allowed.";
+            } elseif ($images["size"] > 2097152) { // Limit image size to 2MB
+                $error_message = "Image size exceeds the maximum allowed limit (2MB).";
+            } else {
+                // Move the uploaded image to the images folder
+                if (move_uploaded_file($images["tmp_name"], $upload_dir . $file_name)) {
+                    // Delete the old image if it exists
+                    if ($car['images']) {
+                        unlink($upload_dir . $car['images']);
+                    }
 
-    // Redirect back to edit_car.php to avoid resubmission on refresh
-    header("Location: edit_car.php?id={$car_id}");
-    exit();
+                    // Update the car data in the database with the new image path
+                    $stmt = $pdo->prepare("UPDATE cars SET make = :make, model = :model, year = :year, price = :price, quantity = :quantity, images = :images WHERE id = :car_id");
+                    $result = $stmt->execute([
+                        'make' => $make,
+                        'model' => $model,
+                        'year' => $year,
+                        'price' => $price,
+                        'quantity' => $quantity,
+                        'images' => $file_name,
+                        'car_id' => $car_id,
+                    ]);
+
+                    // Check if the database update was successful
+                    if ($result) {
+                        $_SESSION['success_message'] = "Car details updated successfully.";
+                        // Redirect back to edit_car.php to avoid resubmission on refresh
+                        header("Location: edit_car.php?id={$car_id}");
+                        exit();
+                    } else {
+                        $error_message = "Error occurred while updating car details.";
+                    }
+                } else {
+                    $error_message = "Error uploading image. Please try again.";
+                }
+            }
+        } else {
+            // Update the car data in the database without changing the image
+            $stmt = $pdo->prepare("UPDATE cars SET make = :make, model = :model, year = :year, price = :price, quantity = :quantity WHERE id = :car_id");
+            $result = $stmt->execute([
+                'make' => $make,
+                'model' => $model,
+                'year' => $year,
+                'price' => $price,
+                'quantity' => $quantity,
+                'car_id' => $car_id,
+            ]);
+
+            // Check if the database update was successful
+            if ($result) {
+                $_SESSION['success_message'] = "Car details updated successfully.";
+                // Redirect back to edit_car.php to avoid resubmission on refresh
+                header("Location: edit_car.php?id={$car_id}");
+                exit();
+            } else {
+                $error_message = "Error occurred while updating car details.";
+            }
+        }
+    }
 }
 ?>
 
@@ -118,7 +147,7 @@ if (isset($_POST['update_car'])) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="../dashboard.php">Back to User Dashboard</a>
+                        <a class="nav-link text-white" href="./manage_cars.php">Back </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link btn btn-danger text-white" href="../logout.php">Logout</a>
@@ -145,38 +174,40 @@ if (isset($_POST['update_car'])) {
             <?php unset($_SESSION['error_message']); ?>
         <?php endif; ?>
 
+
+        <div class="container mt-5">
         <h2>Edit Car</h2>
         <form method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="make">Make:</label>
-                <input type="text" class="form-control" id="make" name="make" value="<?= htmlspecialchars($car['make']) ?>" required>
+            <div class="mb-3">
+                <label for="make" class="form-label">Make</label>
+                <input type="text" class="form-control" id="make" name="make" value="<?= htmlspecialchars($make) ?>" required>
             </div>
-            <div class="form-group">
-                <label for="model">Model:</label>
-                <input type="text" class="form-control" id="model" name="model" value="<?= htmlspecialchars($car['model']) ?>" required>
+            <div class="mb-3">
+                <label for="model" class="form-label">Model</label>
+                <input type="text" class="form-control" id="model" name="model" value="<?= htmlspecialchars($model) ?>" required>
             </div>
-            <div class="form-group">
-                <label for="year">Year:</label>
-                <input type="number" class="form-control" id="year" name="year" value="<?= $car['year'] ?>" required>
+            <div class="mb-3">
+                <label for="year" class="form-label">Year</label>
+                <input type="number" class="form-control" id="year" name="year" value="<?= htmlspecialchars($year) ?>" required>
             </div>
-            <div class="form-group">
-                <label for="price">Price:</label>
-                <input type="number" step="0.01" class="form-control" id="price" name="price" value="<?= $car['price'] ?>" required>
+            <div class="mb-3">
+                <label for="price" class="form-label">Price</label>
+                <input type="number" step="0.01" class="form-control" id="price" name="price" value="<?= htmlspecialchars($price) ?>" required>
             </div>
-            <div class="form-group">
-                <label for="quantity">Quantity:</label>
-                <input type="number" class="form-control" id="quantity" name="quantity" value="<?= $car['quantity'] ?>" required>
+            <div class="mb-3">
+                <label for="quantity" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" value="<?= htmlspecialchars($quantity) ?>" required>
             </div>
-            <div class="form-group pb-2">
-                <label for="car_image">Upload Image:</label>
-                <input type="file" class="form-control-file" id="car_image" name="car_image">
+            <div class="mb-3">
+                <label for="car_image" class="form-label">Images</label>
+                <input type="file" class="form-control" id="car_image" name="car_image" accept="image/*">
             </div>
-            <div class="form-group pb-4">
-                <img src="../public/images/<?= htmlspecialchars($car['images']) ?>" alt="<?= $car['make'] . ' ' . $car['model'] ?>" style="width: 200px; height: 140px;">
-            </div>
+            <?php if ($error_message) : ?>
+                <div class="alert alert-danger"><?= $error_message ?></div>
+            <?php endif; ?>
             <button type="submit" name="update_car" class="btn btn-primary mb-2">Update Car</button>
         </form>
+        </div>
     </div>
-
     <!-- Include the footer -->
     <?php require_once "../includes/footer.php"; ?>

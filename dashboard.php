@@ -99,8 +99,32 @@ $login_duration = gmdate("H:i:s", $time_difference);
         <div class="col-md-9">
             <!-- Main content area -->
             <div class="card p-4">
-                <h2 class="text-center">Dashboard</h2>
-                <!-- Add dashboard content here -->
+                <h2 class="text-center">Recently Added and Updated</h2>
+                <!-- Display recently added cars here -->
+                <div class="row mt-4">
+                    <?php
+                    // Fetch the four most recently added cars from the database
+                    $stmt = $pdo->query("SELECT * FROM cars ORDER BY id DESC LIMIT 4");
+                    $recently_added_cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    // Display the recently added cars
+                    foreach ($recently_added_cars as $car) {
+                        echo '
+                        <div class="col-md-3 mb-3">
+                            <div class="card car-card">
+                                <img src="public/images/' . htmlspecialchars($car['images']) . '" class="card-img-top" alt="' . htmlspecialchars($car['make']) . ' ' . htmlspecialchars($car['model']) . '">
+                                <div class="card-body">
+                                    <h5 class="card-title">' . htmlspecialchars($car['make']) . ' ' . htmlspecialchars($car['model']) . '</h5>
+                                    <p class="card-text">Year: ' . htmlspecialchars($car['year']) . '</p>
+                                    <p class="card-text">Price: $' . htmlspecialchars($car['price']) . '</p>
+                                    <p class="card-text">Quantity: ' . htmlspecialchars($car['quantity']) . '</p>
+                                </div>
+                            </div>
+                            <a href="car_details.php?id=' . htmlspecialchars($car['id']) . '" class="card-link">car details</a>
+                        </div>';
+                    }
+                    ?>
+                </div>
             </div>
         </div>
     </div>

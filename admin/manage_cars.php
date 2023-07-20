@@ -56,7 +56,7 @@ $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-dark">
         <div class="container">
-            <a class="navbar-brand text-white" href="admin_index.php">Admin Dashboard</a>
+            <a class="navbar-brand text-white" href="../dashboard.php">Admin Dashboard</a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
@@ -67,6 +67,7 @@ $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </li>
                 </ul>
             </div>
+            <a class="btn btn-success" href="add_car.php">Add Car</a>
         </div>
     </nav>
 

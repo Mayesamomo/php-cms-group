@@ -26,7 +26,7 @@ $cars = $result->fetchAll(PDO::FETCH_ASSOC);
                     <?php
                     $image_url = $car['images'] ? 'public/images/' . htmlspecialchars($car['images']) : 'https://placehold.co/200x200';
                     ?>
-                    <img src="<?= $image_url ?>" class="card-img-top" alt="<?= $car['make'] . ' ' . $car['model'] ?>"style="height:350px;">
+                    <img src="<?= $image_url ?>" class="card-img-top __card" alt="<?= $car['make'] . ' ' . $car['model'] ?>"style="height:350px;">
 
                     <div class="card-body">
                         <h2 class="card-title"><?= $car['make'] . ' ' . $car['model'] ?></h2>

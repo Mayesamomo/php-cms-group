@@ -24,7 +24,7 @@ if (!$user_profile || $user_profile['role'] !== 'admin') {
     exit();
 }
 
-// Check if a user ID is provided in the query parameter
+// Check if a user ID is in the query parameter
 if (!isset($_GET['id'])) {
     header("Location: manage_users.php");
     exit();

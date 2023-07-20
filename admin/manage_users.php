@@ -24,21 +24,17 @@ if (!$user_profile || $user_profile['role'] !== 'admin') {
     exit();
 }
 
-// Check if the user clicked the "Delete" button for a specific car
-if (isset($_POST['delete_car'])) {
-    // Get the car ID from the form submission
-    $car_id = intval($_POST['car_id']);
+// Check if the user clicked the "Delete" button for a specific user
+if (isset($_POST['delete_user'])) {
+    // Get the user ID from the form submission
+    $user_id = intval($_POST['user_id']);
 
-    // Delete favorites associated with the car from the database
-    $stmt = $pdo->prepare("DELETE FROM favorites WHERE car_id = :car_id");
-    $stmt->execute(['car_id' => $car_id]);
-
-    // Delete the car from the database
-    $stmt = $pdo->prepare("DELETE FROM cars WHERE id = :car_id");
-    $stmt->execute(['car_id' => $car_id]);
+    // Delete the user from the database
+    $stmt = $pdo->prepare("DELETE FROM users WHERE id = :user_id");
+    $stmt->execute(['user_id' => $user_id]);
 
     // Set a session variable with the success message
-    $_SESSION['success_message'] = "Car successfully deleted.";
+    $_SESSION['success_message'] = "User successfully deleted.";
 }
 
 // Function to fetch all users and their profiles from the database
@@ -82,14 +78,13 @@ $users = getAllUsersWithProfiles($pdo);
         </div>
     </nav>
 
-    <!-- ... Previous code ... -->
-
     <div class="container mt-5 mb-5">
+        <!-- Check for the success message and display it -->
         <?php if (isset($_SESSION['success_message'])) : ?>
             <div class="alert alert-success">
-                <?= $_SESSION['success_message'] ?>
+                <?php echo $_SESSION['success_message']; ?>
             </div>
-            <?php unset($_SESSION['success_message']) ?>
+            <?php unset($_SESSION['success_message']); ?>
         <?php endif; ?>
 
         <h2>Manage Users</h2>
@@ -107,14 +102,14 @@ $users = getAllUsersWithProfiles($pdo);
             <tbody>
                 <?php foreach ($users as $user) : ?>
                     <tr>
-                        <td><?= $user['id'] ?></td>
-                        <td><?= $user['email'] ?></td>
-                        <td><?= $user['first_name'] ?></td>
-                        <td><?= $user['last_name'] ?></td>
-                        <td><?= ($user['last_login']) ? date('Y-m-d H:i:s', strtotime($user['last_login'])) : 'N/A' ?></td>
+                        <td><?php echo $user['id']; ?></td>
+                        <td><?php echo $user['email']; ?></td>
+                        <td><?php echo $user['first_name']; ?></td>
+                        <td><?php echo $user['last_name']; ?></td>
+                        <td><?php echo ($user['last_login']) ? date('Y-m-d H:i:s', strtotime($user['last_login'])) : 'N/A'; ?></td>
                         <td>
-                            <a href="edit_user.php?id=<?= $user['id'] ?>" class="btn btn-primary">Edit</a>
-                            <a href="delete_user.php?id=<?= $user['id'] ?>" class="btn btn-danger">Delete</a>
+                            <a href="edit_user.php?id=<?php echo urlencode($user['id']); ?>" class="btn btn-primary">Edit</a>
+                            <a href="delete_user.php?id=<?php echo urlencode($user['id']); ?>" class="btn btn-danger">Delete</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -122,6 +117,6 @@ $users = getAllUsersWithProfiles($pdo);
         </table>
     </div>
 
+    <!-- Include the footer -->
     <?php require_once "../includes/footer.php"; ?>
-
 
