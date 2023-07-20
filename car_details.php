@@ -1,12 +1,12 @@
 <?php
+// Include the database connection
+require_once "includes/db_connection.php";
+
 // Start the session
 session_start();
 
 // Include the header
 require_once "includes/header.php";
-
-// Include the database connection
-require_once "includes/db_connection.php";
 
 // Function to check if a car is already in user's favorites
 function isCarInFavorites($pdo, $user_id, $car_id)
@@ -47,7 +47,8 @@ if (!$car) {
 }
 
 // Check if the car has an image, if not, use the placeholder image URL
-$image_url = (!empty($car['images'])) ? $car['image_url'] : "https://placehold.co/400x400";
+$image_filename = (!empty($car['images'])) ? $car['images'] : "placeholder.png";
+$image_url = "public/images/" . $image_filename;
 ?>
 <!-- ... Previous code ... -->
 
@@ -56,7 +57,7 @@ $image_url = (!empty($car['images'])) ? $car['image_url'] : "https://placehold.c
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <img src="<?= $image_url ?>" class="card-img-top" alt="<?= $car['make'] . ' ' . $car['model'] ?>">
+            <img src="<?= $image_url ?>" class="card-img-top" alt="<?= $car['make'] . ' ' . $car['model'] ?>"style="height:580px;">
                 <div class="card-body">
                     <h2 class="card-title"><?= $car['make'] . ' ' . $car['model'] ?></h2>
                     <p class="card-text">Year: <?= $car['year'] ?></p>

@@ -42,11 +42,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $active_user = $stmt->fetch();
 
                 if ($active_user) {
-                    // User login successful
-                    // Set user session and redirect to the dashboard
-                    session_start();
+                     // Update the last_login column in user_profiles table
+                    $current_time = date('Y-m-d H:i:s');
+                    $stmt = $pdo->prepare("UPDATE user_profiles SET last_login = :last_login WHERE user_id = :user_id");
+                    $stmt->execute(['last_login' => $current_time, 'user_id' => $user['id']]);
+
+                    // Set session variables
                     $_SESSION["user_id"] = $user["id"];
-                    $_SESSION["login_time"] = time();
+                    $_SESSION["login_time"] = time(); // To track the login duration
+
+                    // Redirect to the dashboard or any other page
                     header("Location: dashboard.php");
                     exit();
                 } else {
